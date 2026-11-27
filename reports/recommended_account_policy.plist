@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>policyCategoryAuthentication</key>
+	<array>
+		<dict>
+			<key>policyContent</key>
+			<string>policyAttributeFailedAuthentications &lt; policyAttributeMaximumFailedAuthentications</string>
+			<key>policyIdentifier</key>
+			<string>org.acme.policy.lockout</string>
+			<key>policyParameters</key>
+			<dict>
+				<key>policyAttributeMaximumFailedAuthentications</key>
+				<integer>5</integer>
+				<key>policyAttributeMinutesUntilFailedAuthenticationReset</key>
+				<integer>15</integer>
+			</dict>
+		</dict>
+	</array>
+	<key>policyCategoryPasswordChange</key>
+	<array>
+		<dict>
+			<key>policyContent</key>
+			<string>policyAttributeCurrentTime &gt; policyAttributeLastPasswordChangeTime + (policyAttributeExpiresEveryNDays * 24 * 60 * 60)</string>
+			<key>policyIdentifier</key>
+			<string>org.acme.policy.expiration</string>
+			<key>policyParameters</key>
+			<dict>
+				<key>policyAttributeExpiresEveryNDays</key>
+				<integer>365</integer>
+			</dict>
+		</dict>
+		<dict>
+			<key>policyContent</key>
+			<string>policyAttributePasswordHashes does not contain policyAttributeNewPassword</string>
+			<key>policyIdentifier</key>
+			<string>org.acme.policy.history</string>
+			<key>policyParameters</key>
+			<dict>
+				<key>policyAttributePasswordHistoryDepth</key>
+				<integer>5</integer>
+			</dict>
+		</dict>
+	</array>
+	<key>policyCategoryPasswordContent</key>
+	<array>
+		<dict>
+			<key>policyContent</key>
+			<string>policyAttributePassword matches '.{12,}+'</string>
+			<key>policyContentDescription</key>
+			<dict>
+				<key>en</key>
+				<string>Enter a password that is at least 12 characters long.</string>
+			</dict>
+			<key>policyIdentifier</key>
+			<string>org.acme.policy.minlength</string>
+		</dict>
+		<dict>
+			<key>policyContent</key>
+			<string>policyAttributePassword matches '.*[A-Z].*'</string>
+			<key>policyContentDescription</key>
+			<dict>
+				<key>en</key>
+				<string>Password must include at least one uppercase letter.</string>
+			</dict>
+			<key>policyIdentifier</key>
+			<string>org.acme.policy.uppercase</string>
+		</dict>
+		<dict>
+			<key>policyContent</key>
+			<string>policyAttributePassword matches '.*[a-z].*'</string>
+			<key>policyContentDescription</key>
+			<dict>
+				<key>en</key>
+				<string>Password must include at least one lowercase letter.</string>
+			</dict>
+			<key>policyIdentifier</key>
+			<string>org.acme.policy.lowercase</string>
+		</dict>
+		<dict>
+			<key>policyContent</key>
+			<string>policyAttributePassword matches '.*[0-9].*'</string>
+			<key>policyContentDescription</key>
+			<dict>
+				<key>en</key>
+				<string>Password must include at least one number.</string>
+			</dict>
+			<key>policyIdentifier</key>
+			<string>org.acme.policy.digit</string>
+		</dict>
+		<dict>
+			<key>policyContent</key>
+			<string>policyAttributePassword matches '.*[^A-Za-z0-9].*'</string>
+			<key>policyContentDescription</key>
+			<dict>
+				<key>en</key>
+				<string>Password must include at least one special character.</string>
+			</dict>
+			<key>policyIdentifier</key>
+			<string>org.acme.policy.special</string>
+		</dict>
+	</array>
+</dict>
+</plist>
