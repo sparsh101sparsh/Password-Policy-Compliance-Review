@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Password-Policy Compliance Review</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #f6f7f9;
+    --panel: #ffffff;
+    --panel-muted: #f9fafb;
+    --border: #e5e7eb;
+    --border-strong: #d1d5db;
+    --text: #111827;
+    --text-secondary: #374151;
+    --muted: #6b7280;
+    --accent: #1d4ed8;
+    --accent-soft: #eff6ff;
+    --pass-bg: #ecfdf5;
+    --pass-fg: #065f46;
+    --pass-bd: #a7f3d0;
+    --fail-bg: #fef2f2;
+    --fail-fg: #991b1b;
+    --fail-bd: #fecaca;
+    --warn-bg: #fffbeb;
+    --warn-fg: #92400e;
+    --warn-bd: #fde68a;
+    --font: "Inter", "Avenir Next", "Helvetica Neue", Arial, sans-serif;
+    --mono: "JetBrains Mono", "Menlo", "SF Mono", monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    padding: 28px 32px 44px;
+  }
+  .container { max-width: 1280px; margin: 0 auto; }
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 20px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 18px;
+    margin-bottom: 20px;
+  }
+  .eyebrow {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    margin-bottom: 4px;
+  }
+  .title-block h1 {
+    margin: 0 0 4px;
+    font-size: 25px;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    color: var(--text);
+  }
+  .subtitle { color: var(--muted); font-size: 13px; }
+  .host-pill {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 9px 14px;
+    font-size: 12px;
+    color: var(--muted);
+    text-align: right;
+    line-height: 1.55;
+    box-shadow: 0 1px 2px rgba(17, 24, 39, 0.03);
+  }
+  .host-pill strong { color: var(--text); font-weight: 600; }
+  .tabs {
+    display: inline-flex;
+    gap: 4px;
+    background: #eceef2;
+    padding: 4px;
+    border-radius: 9px;
+    margin-bottom: 20px;
+    border: 1px solid var(--border);
+  }
+  .tab-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    padding: 8px 15px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: var(--font);
+    font-size: 13px;
+    font-weight: 500;
+  }
+  .tab-btn.active {
+    background: var(--panel);
+    color: var(--text);
+    font-weight: 600;
+    box-shadow: 0 1px 3px rgba(17, 24, 39, 0.08);
+  }
+  .kpis {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+  .kpi {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px;
+    box-shadow: 0 1px 2px rgba(17, 24, 39, 0.03);
+  }
+  .kpi .label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .kpi .value {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+    margin: 6px 0 4px;
+  }
+  .kpi .hint { font-size: 12px; color: var(--muted); }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px;
+    margin-bottom: 18px;
+    box-shadow: 0 1px 2px rgba(17, 24, 39, 0.03);
+  }
+  .card h2 {
+    margin: 0 0 12px;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--text);
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th {
+    text-align: left;
+    color: var(--muted);
+    font-weight: 600;
+    padding: 9px 12px;
+    background: var(--panel-muted);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  td {
+    padding: 8px 12px;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: top;
+    color: var(--text-secondary);
+  }
+  td strong { color: var(--text); font-weight: 600; }
+  td:first-child { white-space: nowrap; }
+  tr:last-child td { border-bottom: none; }
+  .badge {
+    display: inline-block;
+    padding: 2px 9px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+  .COMPLIANT { background: var(--pass-bg); color: var(--pass-fg); border: 1px solid var(--pass-bd); }
+  .NON-COMPLIANT { background: var(--fail-bg); color: var(--fail-fg); border: 1px solid var(--fail-bd); }
+  .REVIEW { background: var(--warn-bg); color: var(--warn-fg); border: 1px solid var(--warn-bd); }
+  .sev-CRITICAL { color: #b91c1c; font-weight: 700; font-size: 11.5px; }
+  .sev-HIGH { color: #c2410c; font-weight: 700; font-size: 11.5px; }
+  .sev-MEDIUM { color: #b45309; font-weight: 600; font-size: 11.5px; }
+  .sev-LOW { color: #6b7280; font-weight: 600; font-size: 11.5px; }
+  pre {
+    background: #f8fafc;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 13px 15px;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    line-height: 1.55;
+    color: #1e293b;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+    margin: 8px 0 0;
+  }
+  #plist-preview {
+    max-height: 230px;
+    overflow-y: auto;
+  }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .hidden { display: none; }
+  .tester-bar { display: flex; gap: 10px; margin-bottom: 14px; }
+  input[type="text"] {
+    flex: 1;
+    background: #ffffff;
+    border: 1px solid var(--border-strong);
+    color: var(--text);
+    padding: 9px 12px;
+    border-radius: 7px;
+    font-family: var(--mono);
+    font-size: 13px;
+  }
+  .action-btn {
+    background: var(--text);
+    color: #ffffff;
+    border: none;
+    border-radius: 7px;
+    padding: 9px 16px;
+    font-family: var(--font);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .progress-wrap {
+    height: 7px;
+    background: #e5e7eb;
+    border-radius: 999px;
+    overflow: hidden;
+    margin-top: 10px;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 999px;
+  }
+  code {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: #1e40af;
+    background: #eff6ff;
+    padding: 1px 5px;
+    border-radius: 4px;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="title-block">
+      <div class="eyebrow">System Security Audit</div>
+      <h1>Password-Policy Compliance Review</h1>
+      <div class="subtitle" id="org-subtitle"></div>
+    </div>
+    <div class="host-pill" id="host-meta"></div>
+  </header>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="overview">1. Overview &amp; Comparison Matrix</button>
+    <button class="tab-btn" data-tab="evidence">2. System Admin Tool Evidence</button>
+    <button class="tab-btn" data-tab="recommendations">3. Recommended Changes &amp; Plist</button>
+    <button class="tab-btn" data-tab="tester">4. Live Policy Gap Tester</button>
+  </div>
+
+  <section id="tab-overview">
+    <div class="kpis" id="kpi-cards"></div>
+    <div class="card">
+      <h2>Local / Domain Settings vs. Stated Organization Requirements</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Control</th>
+            <th>Stated Requirement</th>
+            <th>Observed System Setting</th>
+            <th>Status</th>
+            <th>Severity</th>
+          </tr>
+        </thead>
+        <tbody id="matrix-body"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="tab-evidence" class="hidden">
+    <div class="grid-2" id="evidence-grid"></div>
+  </section>
+
+  <section id="tab-recommendations" class="hidden">
+    <div class="card">
+      <h2>Simulated Verification (Applying <code>recommended_account_policy.plist</code> — Read-Only)</h2>
+      <div id="sim-summary"></div>
+    </div>
+    <div class="card">
+      <h2>Prioritized Remediation Plan</h2>
+      <div id="rec-list"></div>
+    </div>
+    <div class="card">
+      <h2>Generated Deployment Artifact: <code>reports/recommended_account_policy.plist</code></h2>
+      <div class="subtitle">Apply via <code>sudo pwpolicy -setaccountpolicies reports/recommended_account_policy.plist</code> or push via enterprise MDM.</div>
+      <pre id="plist-preview"></pre>
+    </div>
+  </section>
+
+  <section id="tab-tester" class="hidden">
+    <div class="card">
+      <h2>Compare Candidate Passwords: Current Local Policy vs. Organization Policy</h2>
+      <div class="subtitle" style="margin-bottom: 12px;">Demonstrates why weak passwords (like 4-char PINs) pass macOS's default <code>com.apple.defaultpasswordpolicy.fde</code> rule while failing organizational standards.</div>
+      <div class="tester-bar">
+        <input id="pwd-input" type="text" placeholder="Type a sample password to test against both policies..." value="Pass@2026" />
+        <button class="action-btn" id="pwd-test-btn">Evaluate Password</button>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Sample Password</th>
+            <th>Length</th>
+            <th>Char Classes</th>
+            <th>Current Local Policy (<code>pwpolicy</code>)</th>
+            <th>Organization Policy (v2.4)</th>
+          </tr>
+        </thead>
+        <tbody id="tester-body"></tbody>
+      </table>
+    </div>
+  </section>
+</div>
+
+<script>
+const DATA = {"state": {"collected_at": "2026-11-27T20:28:53+05:30", "hostname": "sparsh\u2019s MacBook Air", "current_user": "iamsparsh00321", "os_version": "macOS 27.2.1 (26B131)", "local_users": [{"username": "iamsparsh00321", "uid": 501}], "pwpolicy_parsed": {"parsed": true, "categories": ["policyCategoryPasswordContent"], "identifiers": ["com.apple.defaultpasswordpolicy.fde"], "content_rules": ["policyAttributePassword matches '.{4,}+'"], "min_length": 4, "has_complexity": false, "history_depth": null, "max_failed_attempts": null, "max_age_days": null}, "screen_lock_seconds": 300, "autologin_disabled": true, "guest_enabled": false, "filevault_on": true, "ad_bound": false, "dep_enrolled": false, "mdm_enrolled": false, "hashing_schemes": "AuthenticationAuthority: ;ShadowHash;HASHLIST:<SALTED-SHA512-PBKDF2,SRP-RFC5054-4096-SHA512-PBKDF2> ;SecureToken; ;Kerberosv5;;iamsparsh00321@LKDC:SHA1.677C69A7399763515AD52DFB754128D80BE2612C;LKDC:SHA1.677C69A7399763515AD52DFB754128D80BE2612C;", "pam_files": {"passwd": ["auth       required       pam_permit.so", "account    required       pam_opendirectory.so", "password   required       pam_opendirectory.so", "session    required       pam_permit.so"], "sudo": ["auth       include        sudo_local", "auth       sufficient     pam_smartcard.so", "auth       required       pam_opendirectory.so", "account    required       pam_permit.so", "password   required       pam_deny.so", "session    required       pam_permit.so"], "authorization": ["auth       optional       pam_krb5.so use_first_pass use_kcminit no_auth_ccache", "auth       optional       pam_ntlm.so use_first_pass", "auth       required       pam_opendirectory.so use_first_pass nullok", "account    required       pam_opendirectory.so"]}, "raw_evidence": {"pwpolicy_global": {"command": "pwpolicy -getglobalpolicy", "returncode": 0, "stdout": "", "stderr": ""}, "pwpolicy_user_global": {"command": "pwpolicy -u iamsparsh00321 -getglobalpolicy", "returncode": 0, "stdout": "", "stderr": ""}, "pwpolicy_accountpolicies": {"command": "pwpolicy -getaccountpolicies", "returncode": 0, "stdout": "Getting global account policies\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n<plist version=\"1.0\">\n<dict>\n\t<key>policyCategoryPasswordContent<\/key>\n\t<array>\n\t\t<dict>\n\t\t\t<key>policyContent<\/key>\n\t\t\t<string>policyAttributePassword matches '.{4,}+'<\/string>\n\t\t\t<key>policyContentDescription<\/key>\n\t\t\t<dict>\n\t\t\t\t<key>ar<\/key>\n\t\t\t\t<string>\u0623\u062f\u062e\u0644 \u0643\u0644\u0645\u0629 \u0633\u0631 \u0644\u0627 \u062a\u0642\u0644 \u0639\u0646 \u0623\u0631\u0628\u0639\u0629 \u0623\u062d\u0631\u0641 \u0623\u0648 \u0631\u0645\u0648\u0632.<\/string>\n\t\t\t\t<key>ca<\/key>\n\t\t\t\t<string>Introdueix una contrasenya que tingui quatre car\u00e0cters o m\u00e9s.<\/string>\n\t\t\t\t<key>cs<\/key>\n\t\t\t\t<string>Zadejte heslo o\u00a0minim\u00e1ln\u00ed d\u00e9lce \u010dty\u0159i znaky.<\/string>\n\t\t\t\t<key>da<\/key>\n\t\t\t\t<string>Skriv en adgangskode p\u00e5 mindst fire tegn.<\/string>\n\t\t\t\t<key>de<\/key>\n\t\t\t\t<string>Gib ein Passwort ein, das aus mindestens vier Zeichen besteht.<\/string>\n\t\t\t\t<key>el<\/key>\n\t\t\t\t<string>\u0395\u03b9\u03c3\u03b1\u03b3\u03ac\u03b3\u03b5\u03c4\u03b5 \u03ad\u03bd\u03b1 \u03c3\u03c5\u03bd\u03b8\u03b7\u03bc\u03b1\u03c4\u03b9\u03ba\u03cc \u03c0\u03bf\u03c5 \u03c0\u03b5\u03c1\u03b9\u03ad\u03c7\u03b5\u03b9 \u03c4\u03ad\u03c3\u03c3\u03b5\u03c1\u03b9\u03c2 \u03ae \u03c0\u03b5\u03c1\u03b9\u03c3\u03c3\u03cc\u03c4\u03b5\u03c1\u03bf\u03c5\u03c2 \u03c7\u03b1\u03c1\u03b1\u03ba\u03c4\u03ae\u03c1\u03b5\u03c2.<\/string>\n\t\t\t\t<key>en<\/key>\n\t\t\t\t<string>Enter a password that is four characters or more.<\/string>\n\t\t\t\t<key>en_AU<\/key>\n\t\t\t\t<string>Enter a password that is four characters or more.<\/string>\n\t\t\t\t<key>en_GB<\/key>\n\t\t\t\t<string>Enter a password that is four characters or more.<\/string>\n\t\t\t\t<key>es<\/key>\n\t\t\t\t<string>Introduce una contrase\u00f1a que tenga como m\u00ednimo cuatro caracteres.<\/string>\n\t\t\t\t<key>es_419<\/key>\n\t\t\t\t<string>Ingresa una contrase\u00f1a de cuatro caracteres o m\u00e1s.<\/string>\n\t\t\t\t<key>fi<\/key>\n\t\t\t\t<string>Kirjoita salasana, jossa on v\u00e4hint\u00e4\u00e4n nelj\u00e4 merkki\u00e4.<\/string>\n\t\t\t\t<key>fr<\/key>\n\t\t\t\t<string>Saisissez un mot de passe comportant au moins quatre caract\u00e8res.<\/string>\n\t\t\t\t<key>fr_CA<\/key>\n\t\t\t\t<string>Entrez un mot de passe comportant au moins 4\u00a0caract\u00e8res.<\/string>\n\t\t\t\t<key>he<\/key>\n\t\t\t\t<string>\u05d9\u05e9 \u05dc\u05d4\u05d6\u05d9\u05df \u05e1\u05d9\u05e1\u05de\u05d4 \u05d1\u05ea \u05d0\u05e8\u05d1\u05e2\u05d4 \u05ea\u05d5\u05d5\u05d9\u05dd \u05d0\u05d5 \u05d9\u05d5\u05ea\u05e8.<\/string>\n\t\t\t\t<key>hi<\/key>\n\t\t\t\t<string>\u091a\u093e\u0930 \u0935\u0930\u094d\u0923\u094b\u0902 \u0935\u093e\u0932\u093e \u092f\u093e \u0909\u0938\u0938\u0947 \u092c\u0921\u093c\u093e \u092a\u093e\u0938\u0935\u0930\u094d\u0921 \u0926\u0930\u094d\u091c \u0915\u0930\u0947\u0902\u0964<\/string>\n\t\t\t\t<key>hr<\/key>\n\t\t\t\t<string>Unesite lozinku od \u010detiri ili vi\u0161e znakova.<\/string>\n\t\t\t\t<key>hu<\/key>\n\t\t\t\t<string>Adjon meg egy legal\u00e1bb n\u00e9gy karakterb\u0151l \u00e1ll\u00f3 jelsz\u00f3t.<\/string>\n\t\t\t\t<key>id<\/key>\n\t\t\t\t<string>Masukkan kata sandi yang terdiri dari empat karakter atau lebih.<\/string>\n\t\t\t\t<key>it<\/key>\n\t\t\t\t<string>Inserisci una password di quattro o pi\u00f9 caratteri.<\/string>\n\t\t\t\t<key>ja<\/key>\n\t\t\t\t<string>4\u6587\u5b57\u4ee5\u4e0a\u306e\u30d1\u30b9\u30ef\u30fc\u30c9\u3092\u5165\u529b\u3057\u3066\u304f\u3060\u3055\u3044\u3002<\/string>\n\t\t\t\t<key>ko<\/key>\n\t\t\t\t<string>4\uc790 \uc774\uc0c1\uc758 \uc554\ud638\ub97c \uc785\ub825\ud558\uc2ed\uc2dc\uc624.<\/string>\n\t\t\t\t<key>ms<\/key>\n\t\t\t\t<string>Masukkan kata laluan yang mengandungi empat atau lebih aksara.<\/string>\n\t\t\t\t<key>nl<\/key>\n\t\t\t\t<string>Voer een wachtwoord van vier of meer tekens in.<\/string>\n\t\t\t\t<key>no<\/key>\n\t\t\t\t<string>Angi et passord p\u00e5 minst fire tegn.<\/string>\n\t\t\t\t<key>pl<\/key>\n\t\t\t\t<string>Podaj has\u0142o sk\u0142adaj\u0105ce si\u0119 z\u00a0co najmniej czterech znak\u00f3w.<\/string>\n\t\t\t\t<key>pt_BR<\/key>\n\t\t\t\t<string>Digite uma senha com quatro ou mais caracteres.<\/string>\n\t\t\t\t<key>pt_PT<\/key>\n\t\t\t\t<string>Digite uma palavra\u2011passe com pelo menos quatro caracteres.<\/string>\n\t\t\t\t<key>ro<\/key>\n\t\t\t\t<string>Introduce\u021bi o parol\u0103 de minimum patru caractere.<\/string>\n\t\t\t\t<key>ru<\/key>\n\t\t\t\t<string>\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u043f\u0430\u0440\u043e\u043b\u044c, \u0441\u043e\u0441\u0442\u043e\u044f\u0449\u0438\u0439 \u0438\u0437\u00a0\u0447\u0435\u0442\u044b\u0440\u0435\u0445 \u0438\u043b\u0438\u00a0\u0431\u043e\u043b\u0435\u0435 \u0441\u0438\u043c\u0432\u043e\u043b\u043e\u0432.<\/string>\n\t\t\t\t<key>sk<\/key>\n\t\t\t\t<string>Zadajte heslo obsahuj\u00face najmenej \u0161tyri znaky.<\/string>\n\t\t\t\t<key>sl<\/key>\n\t\t\t\t<string>Vnesite geslo, ki vsebuje \u0161tiri znake ali ve\u010d.<\/string>\n\t\t\t\t<key>sv<\/key>\n\t\t\t\t<string>Ange ett l\u00f6senord som \u00e4r minst fyra tecken l\u00e5ngt.<\/string>\n\t\t\t\t<key>th<\/key>\n\t\t\t\t<string>\u0e1b\u0e49\u0e2d\u0e19\u0e23\u0e2b\u0e31\u0e2a\u0e1c\u0e48\u0e32\u0e19\u0e17\u0e35\u0e48\u0e21\u0e35\u0e2d\u0e31\u0e01\u0e02\u0e23\u0e30\u0e2d\u0e22\u0e48\u0e32\u0e07\u0e19\u0e49\u0e2d\u0e22\u0e2a\u0e35\u0e48\u0e15\u0e31\u0e27<\/string>\n\t\t\t\t<key>tr<\/key>\n\t\t\t\t<string>En az d\u00f6rt karakter uzunlu\u011funda bir parola girin.<\/string>\n\t\t\t\t<key>uk<\/key>\n\t\t\t\t<string>\u0412\u0432\u0435\u0434\u0456\u0442\u044c \u043f\u0430\u0440\u043e\u043b\u044c \u0437\u0456 \u0449\u043e\u043d\u0430\u0439\u043c\u0435\u043d\u0448\u0435 \u0447\u043e\u0442\u0438\u0440\u044c\u043e\u0445 \u0441\u0438\u043c\u0432\u043e\u043b\u0456\u0432.<\/string>\n\t\t\t\t<key>vi<\/key>\n\t\t\t\t<string>Nh\u1eadp m\u1eadt kh\u1ea9u d\u00e0i 4 k\u00fd t\u1ef1 tr\u1edf l\u00ean.<\/string>\n\t\t\t\t<key>zh_CN<\/key>\n\t\t\t\t<string>\u8f93\u5165\u4e0d\u5c11\u4e8e4\u4e2a\u5b57\u7b26\u7684\u5bc6\u7801\u3002<\/string>\n\t\t\t\t<key>zh_HK<\/key>\n\t\t\t\t<string>\u8f38\u5165\u4e00\u500b\u56db\u4f4d\u6216\u66f4\u591a\u5b57\u5143\u7684\u5bc6\u78bc\u3002<\/string>\n\t\t\t\t<key>zh_TW<\/key>\n\t\t\t\t<string>\u8f38\u51654\u500b\u5b57\u5143\u6216\u66f4\u9577\u7684\u5bc6\u78bc\u3002<\/string>\n\t\t\t<\/dict>\n\t\t\t<key>policyIdentifier<\/key>\n\t\t\t<string>com.apple.defaultpasswordpolicy.fde<\/string>\n\t\t<\/dict>\n\t<\/array>\n<\/dict>\n<\/plist>", "stderr": ""}, "sysadminctl_screenlock": {"command": "sysadminctl -screenLock status", "returncode": 0, "stdout": "", "stderr": "2026-11-27 20:28:53.393 sysadminctl[64085:915035] screenLock delay is 300 seconds"}, "dsconfigad_show": {"command": "dsconfigad -show", "returncode": 0, "stdout": "", "stderr": ""}, "profiles_enrollment": {"command": "profiles status -type enrollment", "returncode": 0, "stdout": "Enrolled via DEP: No\nMDM enrollment: No", "stderr": ""}, "fdesetup_status": {"command": "fdesetup status", "returncode": 0, "stdout": "FileVault is On.", "stderr": ""}, "loginwindow_autologin": {"command": "defaults read /Library/Preferences/com.apple.loginwindow autoLoginUser", "returncode": 1, "stdout": "", "stderr": "Error: Could not find key 'autoLoginUser' in domain 'com.apple.loginwindow'."}, "loginwindow_guest": {"command": "defaults read /Library/Preferences/com.apple.loginwindow GuestEnabled", "returncode": 0, "stdout": "0", "stderr": ""}, "dscl_auth_authority": {"command": "dscl . -read /Users/iamsparsh00321 AuthenticationAuthority", "returncode": 0, "stdout": "AuthenticationAuthority: ;ShadowHash;HASHLIST:<SALTED-SHA512-PBKDF2,SRP-RFC5054-4096-SHA512-PBKDF2> ;SecureToken; ;Kerberosv5;;iamsparsh00321@LKDC:SHA1.677C69A7399763515AD52DFB754128D80BE2612C;LKDC:SHA1.677C69A7399763515AD52DFB754128D80BE2612C;", "stderr": ""}, "dscl_local_users": {"command": "dscl . -list /Users UniqueID", "returncode": 0, "stdout": "_accessoryupdater        278\n_adsklic                 499\n_amavisd                 83\n_analyticsd              263\n_aonsensed               300\n_appinstalld             273\n_appleevents             55\n_applepay                260\n_appowner                87\n_appserver               79\n_appstore                33\n_ard                     67\n_assetcache              235\n_astris                  245\n_atsserver               97\n_audiomxd                294\n_avbdeviced              229\n_avphidbridge            288\n_backgroundassets        291\n_biome                   289\n_calendar                93\n_captiveagent            258\n_ces                     32\n_clamav                  82\n_cmiodalassistants       262\n_coreaudiod              202\n_coremediaiod            236\n_coreml                  280\n_corespeechd             306\n_ctkd                    259\n_cvmsroot                212\n_cvs                     72\n_cyrus                   77\n_darwindaemon            284\n_datadetectors           257\n_demod                   275\n_devdocs                 59\n_devicemgr               220\n_diagnosticservicesd     307\n_diskimagesiod           271\n_displaypolicyd          244\n_distnote                241\n_dovecot                 214\n_dovenull                227\n_dpaudio                 215\n_driverkit               270\n_eligibilityd            297\n_eppc                    71\n_findmydevice            254\n_fpsd                    265\n_ftp                     98\n_gamecontrollerd         247\n_geod                    56\n_hidd                    261\n_iconservices            240\n_installassistant        25\n_installcoordinationd    274\n_installer               96\n_jabber                  84\n_kadmin_admin            218\n_kadmin_changepw         219\n_knowledgegraphd         279\n_krb_anonymous           234\n_krb_changepw            232\n_krb_kadmin              231\n_krb_kerberos            233\n_krb_krbtgt              230\n_krbfast                 246\n_krbtgt                  217\n_launchservicesd         239\n_lda                     211\n_locationd               205\n_logd                    272\n_lp                      26\n_mailman                 78\n_mbsetupuser             248\n_mcxalr                  54\n_mdnsresponder           65\n_mds_stores              308\n_mmaintenanced           283\n_mobileasset             253\n_mobilegestalthelper     293\n_modelmanagerd           301\n_mysql                   74\n_naturallanguaged        304\n_nearbyd                 268\n_netbios                 222\n_netstatistics           228\n_networkd                24\n_neuralengine            296\n_notification_proxy      285\n_nsurlsessiond           242\n_oahd                    441\n_ondemand                249\n_postfix                 27\n_postgres                216\n_qtss                    76\n_reportmemoryexception   269\n_reportsystemmemory      302\n_rmd                     277\n_sandbox                 60\n_screensaver             203\n_scsd                    31\n_securityagent           92\n_sntpd                   281\n_softwareupdate          200\n_spinandd                305\n_spotlight               89\n_sshd                    75\n_svn                     73\n_swtransparencyd         303\n_systemstatusd           298\n_taskgated               13\n_teamsserver             94\n_terminusd               295\n_timed                   266\n_timezone                210\n_tokend                  91\n_trustd                  282\n_trustevaluationagent    208\n_unknown                 99\n_update_sharing          95\n_usbmuxd                 213\n_uucp                    4\n_warmd                   224\n_webauthserver           221\n_windowserver            88\n_www                     70\n_wwwproxy                252\n_xserverdocs             251\ndaemon                   1\niamsparsh00321           501\nnobody                   -2\nroot                     0", "stderr": ""}}}, "compliance": {"organization": "Acme Enterprise Security Baseline", "policy_version": "2.4", "reference_standards": ["NIST SP 800-63B (Digital Identity Guidelines)", "CIS Apple macOS Benchmark (Level 1)"], "summary": {"total_controls": 12, "compliant": 6, "non_compliant": 5, "review": 1, "compliance_score_pct": 50.0}, "results": [{"id": "REQ-01", "category": "Password Length", "title": "Minimum Password Length", "required_value": ">= 12 characters", "actual_value": "4 characters (policy: com.apple.defaultpasswordpolicy.fde)", "status": "NON-COMPLIANT", "severity": "CRITICAL", "evidence_command": "pwpolicy -getaccountpolicies", "rationale": "Short passwords (e.g., 4 characters) are trivially brute-forced offline and online.", "recommendation": "Increase minimum password length from 4 to 12+ characters via `pwpolicy -setaccountpolicies` or an MDM Passcode payload."}, {"id": "REQ-02", "category": "Password Complexity", "title": "Character Diversity / Complexity Rule", "required_value": "Must enforce >= 3 of 4 classes (upper, lower, digit, symbol) or >= 15-char passphrase", "actual_value": "No complexity rules (only `policyAttributePassword matches '.{4,}+'`)", "status": "NON-COMPLIANT", "severity": "HIGH", "evidence_command": "pwpolicy -getaccountpolicies", "rationale": "Prevents single-class numeric PINs or dictionary words from being accepted.", "recommendation": "Add character-class rules (uppercase, lowercase, digit, special character) or enforce >= 15-character passphrases in `policyCategoryPasswordContent`."}, {"id": "REQ-03", "category": "Password Reuse", "title": "Password History Enforcement", "required_value": "Remember at least 5 previous passwords", "actual_value": "Not configured (0)", "status": "NON-COMPLIANT", "severity": "MEDIUM", "evidence_command": "pwpolicy -getaccountpolicies", "rationale": "Stops users from cycling back to previously compromised passwords.", "recommendation": "Set `policyAttributePasswordHistoryDepth` to 5 in `policyCategoryPasswordChange`."}, {"id": "REQ-04", "category": "Lockout Protection", "title": "Failed Login Attempt Lockout", "required_value": "Lock account after <= 5 failed attempts", "actual_value": "Not configured (unlimited)", "status": "NON-COMPLIANT", "severity": "HIGH", "evidence_command": "pwpolicy -getaccountpolicies", "rationale": "Mitigates online credential-stuffing and interactive password guessing.", "recommendation": "Configure `policyAttributeMaximumFailedAuthentications` = 5 with an auto-unlock window (`policyAttributeMinutesUntilFailedAuthenticationReset`)."}, {"id": "REQ-05", "category": "Password Lifecycle", "title": "Maximum Password Age / Expiration Policy", "required_value": "Defined expiration policy (<= 365 days or risk-based breach check)", "actual_value": "No expiration configured", "status": "REVIEW", "severity": "LOW", "evidence_command": "pwpolicy -getaccountpolicies", "rationale": "Ensures periodic credential rotation or explicit risk-based expiration governance.", "recommendation": "Define `policyAttributeExpiresEveryNDays` <= 365 days (or document an explicit NIST 800-63B exception paired with compromised-password screening)."}, {"id": "REQ-06", "category": "Central Governance", "title": "Domain / MDM Password Policy Management", "required_value": "Managed via Active Directory or MDM profile", "actual_value": "Standalone local host (AD: No, DEP: No, MDM: No)", "status": "NON-COMPLIANT", "severity": "MEDIUM", "evidence_command": "dsconfigad -show && profiles status -type enrollment", "rationale": "Centralized enforcement ensures uniform compliance across all endpoints.", "recommendation": "Enroll workstation into enterprise MDM (e.g., Jamf/Kandji/Intune) and push a `com.apple.mobiledevice.passwordpolicy` configuration profile."}, {"id": "REQ-07", "category": "Session Security", "title": "Automatic Login Disabled", "required_value": "Disabled (autoLoginUser unset)", "actual_value": "Disabled (autoLoginUser key absent)", "status": "COMPLIANT", "severity": "HIGH", "evidence_command": "defaults read /Library/Preferences/com.apple.loginwindow autoLoginUser", "rationale": "Prevents unauthorized physical access upon device reboot.", "recommendation": "No change required."}, {"id": "REQ-08", "category": "Account Hygiene", "title": "Guest Account Disabled", "required_value": "Disabled (GuestEnabled = 0)", "actual_value": "Disabled (GuestEnabled = 0)", "status": "COMPLIANT", "severity": "MEDIUM", "evidence_command": "defaults read /Library/Preferences/com.apple.loginwindow GuestEnabled", "rationale": "Eliminates unauthenticated local guest sessions.", "recommendation": "No change required."}, {"id": "REQ-09", "category": "Session Security", "title": "Screen Lock Timeout", "required_value": "<= 300 seconds (5 minutes)", "actual_value": "300 seconds (5 min)", "status": "COMPLIANT", "severity": "MEDIUM", "evidence_command": "sysadminctl -screenLock status", "rationale": "Limits exposure window when a workstation is left unattended.", "recommendation": "Meets baseline (<= 300s). Optionally tighten to 60\u2013120s for high-sensitivity roles."}, {"id": "REQ-10", "category": "Cryptography", "title": "Password Hashing Algorithm", "required_value": "PBKDF2-HMAC-SHA512 / Salted ShadowHash", "actual_value": "SALTED-SHA512-PBKDF2 + SRP-RFC5054-4096 + SecureToken", "status": "COMPLIANT", "severity": "HIGH", "evidence_command": "dscl . -read /Users/iamsparsh00321 AuthenticationAuthority", "rationale": "Slow salted key derivation resists offline cracking.", "recommendation": "No change required."}, {"id": "REQ-11", "category": "Data Protection", "title": "Full Disk Encryption (FileVault)", "required_value": "Enabled (FileVault On)", "actual_value": "FileVault is On", "status": "COMPLIANT", "severity": "HIGH", "evidence_command": "fdesetup status", "rationale": "Protects local credential databases and user data at rest.", "recommendation": "No change required."}, {"id": "REQ-12", "category": "PAM Enforcement", "title": "Directory-Backed PAM Authentication", "required_value": "pam_opendirectory.so enforced on passwd, sudo, authorization", "actual_value": "pam_opendirectory.so active in passwd, sudo, authorization", "status": "COMPLIANT", "severity": "MEDIUM", "evidence_command": "cat /etc/pam.d/{passwd,sudo,authorization}", "rationale": "Ensures CLI tools and privilege escalation honor system password policies.", "recommendation": "No change required."}]}, "sim_compliance": {"organization": "Acme Enterprise Security Baseline", "policy_version": "2.4", "reference_standards": ["NIST SP 800-63B (Digital Identity Guidelines)", "CIS Apple macOS Benchmark (Level 1)"], "summary": {"total_controls": 12, "compliant": 11, "non_compliant": 1, "review": 0, "compliance_score_pct": 91.7}, "results": [{"id": "REQ-01", "category": "Password Length", "title": "Minimum Password Length", "required_value": ">= 12 characters", "actual_value": "12 characters (policy: org.acme.policy.lockout, org.acme.policy.expiration, org.acme.policy.history, org.acme.policy.minlength, org.acme.policy.uppercase, org.acme.policy.lowercase, org.acme.policy.digit, org.acme.policy.special)", "status": "COMPLIANT", "severity": "CRITICAL", "evidence_command": "pwpolicy -getaccountpolicies", "rationale": "Short passwords (e.g., 4 characters) are trivially brute-forced offline and online.", "recommendation": "No change required."}, {"id": "REQ-02", "category": "Password Complexity", "title": "Character Diversity / Complexity Rule", "required_value": "Must enforce >= 3 of 4 classes (upper, lower, digit, symbol) or >= 15-char passphrase", "actual_value": "Complexity rules configured (8 content rules)", "status": "COMPLIANT", "severity": "HIGH", "evidence_command": "pwpolicy -getaccountpolicies", "rationale": "Prevents single-class numeric PINs or dictionary words from being accepted.", "recommendation": "No change required."}, {"id": "REQ-03", "category": "Password Reuse", "title": "Password History Enforcement", "required_value": "Remember at least 5 previous passwords", "actual_value": "Remembers 5 previous passwords", "status": "COMPLIANT", "severity": "MEDIUM", "evidence_command": "pwpolicy -getaccountpolicies", "rationale": "Stops users from cycling back to previously compromised passwords.", "recommendation": "No change required."}, {"id": "REQ-04", "category": "Lockout Protection", "title": "Failed Login Attempt Lockout", "required_value": "Lock account after <= 5 failed attempts", "actual_value": "Locks after 5 failed attempts", "status": "COMPLIANT", "severity": "HIGH", "evidence_command": "pwpolicy -getaccountpolicies", "rationale": "Mitigates online credential-stuffing and interactive password guessing.", "recommendation": "No change required."}, {"id": "REQ-05", "category": "Password Lifecycle", "title": "Maximum Password Age / Expiration Policy", "required_value": "Defined expiration policy (<= 365 days or risk-based breach check)", "actual_value": "Expires every 365 days", "status": "COMPLIANT", "severity": "LOW", "evidence_command": "pwpolicy -getaccountpolicies", "rationale": "Ensures periodic credential rotation or explicit risk-based expiration governance.", "recommendation": "No change required."}, {"id": "REQ-06", "category": "Central Governance", "title": "Domain / MDM Password Policy Management", "required_value": "Managed via Active Directory or MDM profile", "actual_value": "Standalone local host (AD: No, DEP: No, MDM: No)", "status": "NON-COMPLIANT", "severity": "MEDIUM", "evidence_command": "dsconfigad -show && profiles status -type enrollment", "rationale": "Centralized enforcement ensures uniform compliance across all endpoints.", "recommendation": "Enroll workstation into enterprise MDM (e.g., Jamf/Kandji/Intune) and push a `com.apple.mobiledevice.passwordpolicy` configuration profile."}, {"id": "REQ-07", "category": "Session Security", "title": "Automatic Login Disabled", "required_value": "Disabled (autoLoginUser unset)", "actual_value": "Disabled (autoLoginUser key absent)", "status": "COMPLIANT", "severity": "HIGH", "evidence_command": "defaults read /Library/Preferences/com.apple.loginwindow autoLoginUser", "rationale": "Prevents unauthorized physical access upon device reboot.", "recommendation": "No change required."}, {"id": "REQ-08", "category": "Account Hygiene", "title": "Guest Account Disabled", "required_value": "Disabled (GuestEnabled = 0)", "actual_value": "Disabled (GuestEnabled = 0)", "status": "COMPLIANT", "severity": "MEDIUM", "evidence_command": "defaults read /Library/Preferences/com.apple.loginwindow GuestEnabled", "rationale": "Eliminates unauthenticated local guest sessions.", "recommendation": "No change required."}, {"id": "REQ-09", "category": "Session Security", "title": "Screen Lock Timeout", "required_value": "<= 300 seconds (5 minutes)", "actual_value": "300 seconds (5 min)", "status": "COMPLIANT", "severity": "MEDIUM", "evidence_command": "sysadminctl -screenLock status", "rationale": "Limits exposure window when a workstation is left unattended.", "recommendation": "Meets baseline (<= 300s). Optionally tighten to 60\u2013120s for high-sensitivity roles."}, {"id": "REQ-10", "category": "Cryptography", "title": "Password Hashing Algorithm", "required_value": "PBKDF2-HMAC-SHA512 / Salted ShadowHash", "actual_value": "SALTED-SHA512-PBKDF2 + SRP-RFC5054-4096 + SecureToken", "status": "COMPLIANT", "severity": "HIGH", "evidence_command": "dscl . -read /Users/iamsparsh00321 AuthenticationAuthority", "rationale": "Slow salted key derivation resists offline cracking.", "recommendation": "No change required."}, {"id": "REQ-11", "category": "Data Protection", "title": "Full Disk Encryption (FileVault)", "required_value": "Enabled (FileVault On)", "actual_value": "FileVault is On", "status": "COMPLIANT", "severity": "HIGH", "evidence_command": "fdesetup status", "rationale": "Protects local credential databases and user data at rest.", "recommendation": "No change required."}, {"id": "REQ-12", "category": "PAM Enforcement", "title": "Directory-Backed PAM Authentication", "required_value": "pam_opendirectory.so enforced on passwd, sudo, authorization", "actual_value": "pam_opendirectory.so active in passwd, sudo, authorization", "status": "COMPLIANT", "severity": "MEDIUM", "evidence_command": "cat /etc/pam.d/{passwd,sudo,authorization}", "rationale": "Ensures CLI tools and privilege escalation honor system password policies.", "recommendation": "No change required."}]}, "sample_tests": [{"password": "1234", "length": 4, "classes": 1, "local_policy_pass": true, "local_note": "Passes current local policy (.{4,}+)", "org_policy_pass": false, "org_note": "length 4 < 12; only 1/4 char classes (need >=3 or 15+ passphrase)"}, {"password": "admin123", "length": 8, "classes": 2, "local_policy_pass": true, "local_note": "Passes current local policy (.{4,}+)", "org_policy_pass": false, "org_note": "length 8 < 12; only 2/4 char classes (need >=3 or 15+ passphrase)"}, {"password": "Pass2026", "length": 8, "classes": 3, "local_policy_pass": true, "local_note": "Passes current local policy (.{4,}+)", "org_policy_pass": false, "org_note": "length 8 < 12"}, {"password": "Tr0ub4dor&3!", "length": 12, "classes": 4, "local_policy_pass": true, "local_note": "Passes current local policy (.{4,}+)", "org_policy_pass": true, "org_note": "Meets organization requirements"}], "recommended_plist": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n<plist version=\"1.0\">\n<dict>\n\t<key>policyCategoryAuthentication<\/key>\n\t<array>\n\t\t<dict>\n\t\t\t<key>policyContent<\/key>\n\t\t\t<string>policyAttributeFailedAuthentications &lt; policyAttributeMaximumFailedAuthentications<\/string>\n\t\t\t<key>policyIdentifier<\/key>\n\t\t\t<string>org.acme.policy.lockout<\/string>\n\t\t\t<key>policyParameters<\/key>\n\t\t\t<dict>\n\t\t\t\t<key>policyAttributeMaximumFailedAuthentications<\/key>\n\t\t\t\t<integer>5<\/integer>\n\t\t\t\t<key>policyAttributeMinutesUntilFailedAuthenticationReset<\/key>\n\t\t\t\t<integer>15<\/integer>\n\t\t\t<\/dict>\n\t\t<\/dict>\n\t<\/array>\n\t<key>policyCategoryPasswordChange<\/key>\n\t<array>\n\t\t<dict>\n\t\t\t<key>policyContent<\/key>\n\t\t\t<string>policyAttributeCurrentTime &gt; policyAttributeLastPasswordChangeTime + (policyAttributeExpiresEveryNDays * 24 * 60 * 60)<\/string>\n\t\t\t<key>policyIdentifier<\/key>\n\t\t\t<string>org.acme.policy.expiration<\/string>\n\t\t\t<key>policyParameters<\/key>\n\t\t\t<dict>\n\t\t\t\t<key>policyAttributeExpiresEveryNDays<\/key>\n\t\t\t\t<integer>365<\/integer>\n\t\t\t<\/dict>\n\t\t<\/dict>\n\t\t<dict>\n\t\t\t<key>policyContent<\/key>\n\t\t\t<string>policyAttributePasswordHashes does not contain policyAttributeNewPassword<\/string>\n\t\t\t<key>policyIdentifier<\/key>\n\t\t\t<string>org.acme.policy.history<\/string>\n\t\t\t<key>policyParameters<\/key>\n\t\t\t<dict>\n\t\t\t\t<key>policyAttributePasswordHistoryDepth<\/key>\n\t\t\t\t<integer>5<\/integer>\n\t\t\t<\/dict>\n\t\t<\/dict>\n\t<\/array>\n\t<key>policyCategoryPasswordContent<\/key>\n\t<array>\n\t\t<dict>\n\t\t\t<key>policyContent<\/key>\n\t\t\t<string>policyAttributePassword matches '.{12,}+'<\/string>\n\t\t\t<key>policyContentDescription<\/key>\n\t\t\t<dict>\n\t\t\t\t<key>en<\/key>\n\t\t\t\t<string>Enter a password that is at least 12 characters long.<\/string>\n\t\t\t<\/dict>\n\t\t\t<key>policyIdentifier<\/key>\n\t\t\t<string>org.acme.policy.minlength<\/string>\n\t\t<\/dict>\n\t\t<dict>\n\t\t\t<key>policyContent<\/key>\n\t\t\t<string>policyAttributePassword matches '.*[A-Z].*'<\/string>\n\t\t\t<key>policyContentDescription<\/key>\n\t\t\t<dict>\n\t\t\t\t<key>en<\/key>\n\t\t\t\t<string>Password must include at least one uppercase letter.<\/string>\n\t\t\t<\/dict>\n\t\t\t<key>policyIdentifier<\/key>\n\t\t\t<string>org.acme.policy.uppercase<\/string>\n\t\t<\/dict>\n\t\t<dict>\n\t\t\t<key>policyContent<\/key>\n\t\t\t<string>policyAttributePassword matches '.*[a-z].*'<\/string>\n\t\t\t<key>policyContentDescription<\/key>\n\t\t\t<dict>\n\t\t\t\t<key>en<\/key>\n\t\t\t\t<string>Password must include at least one lowercase letter.<\/string>\n\t\t\t<\/dict>\n\t\t\t<key>policyIdentifier<\/key>\n\t\t\t<string>org.acme.policy.lowercase<\/string>\n\t\t<\/dict>\n\t\t<dict>\n\t\t\t<key>policyContent<\/key>\n\t\t\t<string>policyAttributePassword matches '.*[0-9].*'<\/string>\n\t\t\t<key>policyContentDescription<\/key>\n\t\t\t<dict>\n\t\t\t\t<key>en<\/key>\n\t\t\t\t<string>Password must include at least one number.<\/string>\n\t\t\t<\/dict>\n\t\t\t<key>policyIdentifier<\/key>\n\t\t\t<string>org.acme.policy.digit<\/string>\n\t\t<\/dict>\n\t\t<dict>\n\t\t\t<key>policyContent<\/key>\n\t\t\t<string>policyAttributePassword matches '.*[^A-Za-z0-9].*'<\/string>\n\t\t\t<key>policyContentDescription<\/key>\n\t\t\t<dict>\n\t\t\t\t<key>en<\/key>\n\t\t\t\t<string>Password must include at least one special character.<\/string>\n\t\t\t<\/dict>\n\t\t\t<key>policyIdentifier<\/key>\n\t\t\t<string>org.acme.policy.special<\/string>\n\t\t<\/dict>\n\t<\/array>\n<\/dict>\n<\/plist>\n"};
+const { state, compliance, sim_compliance, sample_tests, recommended_plist } = DATA;
+const s = compliance.summary;
+
+document.getElementById("org-subtitle").textContent =
+  `${compliance.organization} (v${compliance.policy_version}) — ${compliance.reference_standards.join(" | ")}`;
+
+document.getElementById("host-meta").innerHTML = `
+  <div>Host: <strong>${state.hostname}</strong> | User: <strong>${state.current_user}</strong></div>
+  <div>${state.os_version} | Collected: ${state.collected_at}</div>
+`;
+
+document.getElementById("kpi-cards").innerHTML = `
+  <div class="kpi">
+    <div class="label">Compliance Score</div>
+    <div class="value" style="color:${s.compliance_score_pct >= 80 ? '#047857' : '#111827'}">${s.compliance_score_pct}%</div>
+    <div class="progress-wrap"><div class="progress-fill" style="width:${s.compliance_score_pct}%"></div></div>
+  </div>
+  <div class="kpi">
+    <div class="label">Compliant Controls</div>
+    <div class="value" style="color:#047857">${s.compliant} / ${s.total_controls}</div>
+    <div class="hint">FileVault, Screen Lock, PBKDF2, PAM</div>
+  </div>
+  <div class="kpi">
+    <div class="label">Non-Compliant Gaps</div>
+    <div class="value" style="color:#b91c1c">${s.non_compliant}</div>
+    <div class="hint">4-char min, no complexity or lockout</div>
+  </div>
+  <div class="kpi">
+    <div class="label">Directory / MDM</div>
+    <div class="value" style="font-size:21px; padding-top:5px; color:#b45309">${state.mdm_enrolled || state.ad_bound ? 'Managed' : 'Standalone'}</div>
+    <div class="hint">AD Bound: ${state.ad_bound ? 'Yes' : 'No'} | MDM: ${state.mdm_enrolled ? 'Yes' : 'No'}</div>
+  </div>
+`;
+
+const tbody = document.getElementById("matrix-body");
+for (const r of compliance.results) {
+  const tr = document.createElement("tr");
+  tr.innerHTML = `
+    <td><code>${r.id}</code></td>
+    <td><strong>${r.title}</strong><div class="subtitle">${r.category}</div></td>
+    <td>${r.required_value}</td>
+    <td>${r.actual_value}</td>
+    <td><span class="badge ${r.status}">${r.status}</span></td>
+    <td><span class="sev-${r.severity}">${r.severity}</span></td>
+  `;
+  tbody.appendChild(tr);
+}
+
+const evGrid = document.getElementById("evidence-grid");
+const evItems = [
+  ["pwpolicy -getaccountpolicies (parsed)", JSON.stringify(state.pwpolicy_parsed, null, 2)],
+  ["pwpolicy -getglobalpolicy", state.raw_evidence.pwpolicy_global.stdout || "(empty — legacy global policy unset)"],
+  ["sysadminctl -screenLock status", state.raw_evidence.sysadminctl_screenlock.stderr || state.raw_evidence.sysadminctl_screenlock.stdout],
+  ["profiles status -type enrollment & dsconfigad -show", `profiles:
+${state.raw_evidence.profiles_enrollment.stdout}
+
+dsconfigad:
+${state.raw_evidence.dsconfigad_show.stdout || "(not bound to Active Directory)"}`],
+  ["fdesetup status & loginwindow defaults", `fdesetup: ${state.raw_evidence.fdesetup_status.stdout}
+autoLoginUser: ${state.raw_evidence.loginwindow_autologin.stderr || state.raw_evidence.loginwindow_autologin.stdout}
+GuestEnabled: ${state.raw_evidence.loginwindow_guest.stdout}`],
+  ["dscl AuthenticationAuthority & PAM", `${state.raw_evidence.dscl_auth_authority.stdout}
+
+/etc/pam.d/passwd:
+${(state.pam_files.passwd || []).join("\n")}`]
+];
+for (const [title, content] of evItems) {
+  const div = document.createElement("div");
+  div.className = "card";
+  const h = document.createElement("h2");
+  h.textContent = title;
+  const pre = document.createElement("pre");
+  pre.textContent = content;
+  div.appendChild(h);
+  div.appendChild(pre);
+  evGrid.appendChild(div);
+}
+
+const simSum = sim_compliance.summary;
+const fixedIds = sim_compliance.results
+  .filter((r, i) => r.status === "COMPLIANT" && compliance.results[i].status !== "COMPLIANT")
+  .map(r => `${r.id} (${r.title})`);
+document.getElementById("sim-summary").innerHTML = `
+  <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+    <div>
+      <strong>Baseline:</strong> ${s.compliance_score_pct}% (${s.compliant}/${s.total_controls} compliant)
+      &nbsp;&rarr;&nbsp;
+      <strong style="color:#047857;">After Plist Remediation (Simulated):</strong> ${simSum.compliance_score_pct}% (${simSum.compliant}/${simSum.total_controls} compliant)
+    </div>
+    <span class="badge COMPLIANT">Local Policy Controls Resolved: ${fixedIds.length} (REQ-01 to REQ-05)</span>
+  </div>
+  <div class="subtitle" style="margin-top:6px;">Verified via <code>python3 audit_password_policy.py --simulate-plist reports/recommended_account_policy.plist</code>. Only <code>REQ-06</code> (Domain/MDM enrollment) remains external to local <code>pwpolicy</code>.</div>
+`;
+
+const recList = document.getElementById("rec-list");
+for (const r of compliance.results.filter(x => x.status !== "COMPLIANT")) {
+  const item = document.createElement("div");
+  item.style.cssText = "padding:12px 0; border-bottom:1px solid #e5e7eb;";
+  item.innerHTML = `
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+      <strong><code>${r.id}</code> — ${r.title}</strong>
+      <span class="badge ${r.status}">${r.severity} • ${r.status}</span>
+    </div>
+    <div class="subtitle" style="margin-bottom:4px;">Current: ${r.actual_value} | Required: ${r.required_value}</div>
+    <div style="font-size:13px;">Recommended Change: ${r.recommendation}</div>
+  `;
+  recList.appendChild(item);
+}
+document.getElementById("plist-preview").textContent = recommended_plist;
+
+const testerRows = [...sample_tests];
+function evaluateCandidate(pwd) {
+  const localMin = state.pwpolicy_parsed.min_length || 4;
+  const localPass = pwd.length >= localMin;
+  const classes = [/[A-Z]/, /[a-z]/, /[0-9]/, /[^A-Za-z0-9]/].filter(rx => rx.test(pwd)).length;
+  const reasons = [];
+  if (pwd.length < 12) reasons.push(`length ${pwd.length} < 12`);
+  if (classes < 3 && pwd.length < 15) reasons.push(`only ${classes}/4 char classes (need >=3 or 15+ passphrase)`);
+  return {
+    password: pwd,
+    length: pwd.length,
+    classes,
+    local_policy_pass: localPass,
+    local_note: localPass ? `Passes current local policy (.{${localMin},}+)` : `Fails local min ${localMin}`,
+    org_policy_pass: reasons.length === 0,
+    org_note: reasons.length === 0 ? "Meets organization requirements" : reasons.join("; ")
+  };
+}
+function escHtml(str) {
+  return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+function renderTester() {
+  const tb = document.getElementById("tester-body");
+  tb.innerHTML = "";
+  for (const row of testerRows) {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td><code>${escHtml(row.password)}</code></td>
+      <td>${row.length}</td>
+      <td>${row.classes} / 4</td>
+      <td><span class="badge ${row.local_policy_pass ? 'COMPLIANT' : 'NON-COMPLIANT'}">${row.local_policy_pass ? 'ACCEPTED' : 'REJECTED'}</span> <span class="subtitle">${escHtml(row.local_note)}</span></td>
+      <td><span class="badge ${row.org_policy_pass ? 'COMPLIANT' : 'NON-COMPLIANT'}">${row.org_policy_pass ? 'COMPLIANT' : 'REJECTED'}</span> <span class="subtitle">${escHtml(row.org_note)}</span></td>
+    `;
+    tb.appendChild(tr);
+  }
+}
+renderTester();
+
+document.getElementById("pwd-test-btn").addEventListener("click", () => {
+  const val = document.getElementById("pwd-input").value;
+  if (val) {
+    testerRows.unshift(evaluateCandidate(val));
+    renderTester();
+  }
+});
+
+function activateTab(tabName) {
+  document.querySelectorAll(".tab-btn").forEach(b => b.classList.toggle("active", b.dataset.tab === tabName));
+  ["overview", "evidence", "recommendations", "tester"].forEach(t => {
+    document.getElementById(`tab-${t}`).classList.toggle("hidden", t !== tabName);
+  });
+}
+document.querySelectorAll(".tab-btn").forEach(btn => {
+  btn.addEventListener("click", () => activateTab(btn.dataset.tab));
+});
+const params = new URLSearchParams(window.location.search);
+if (params.get("tab")) activateTab(params.get("tab"));
+if (params.get("eval")) {
+  const inp = document.getElementById("pwd-input");
+  if (params.get("eval") !== "1") inp.value = params.get("eval");
+  document.getElementById("pwd-test-btn").click();
+}
+</script>
+</body>
+</html>
