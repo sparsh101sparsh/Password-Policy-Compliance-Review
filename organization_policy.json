@@ -1,0 +1,111 @@
+{
+  "organization": "Acme Enterprise Security Baseline",
+  "policy_version": "2.4",
+  "reference_standards": [
+    "NIST SP 800-63B (Digital Identity Guidelines)",
+    "CIS Apple macOS Benchmark (Level 1)"
+  ],
+  "requirements": [
+    {
+      "id": "REQ-01",
+      "category": "Password Length",
+      "title": "Minimum Password Length",
+      "required_value": ">= 12 characters",
+      "min_length": 12,
+      "severity": "CRITICAL",
+      "rationale": "Short passwords (e.g., 4 characters) are trivially brute-forced offline and online."
+    },
+    {
+      "id": "REQ-02",
+      "category": "Password Complexity",
+      "title": "Character Diversity / Complexity Rule",
+      "required_value": "Must enforce >= 3 of 4 classes (upper, lower, digit, symbol) or >= 15-char passphrase",
+      "severity": "HIGH",
+      "rationale": "Prevents single-class numeric PINs or dictionary words from being accepted."
+    },
+    {
+      "id": "REQ-03",
+      "category": "Password Reuse",
+      "title": "Password History Enforcement",
+      "required_value": "Remember at least 5 previous passwords",
+      "min_history": 5,
+      "severity": "MEDIUM",
+      "rationale": "Stops users from cycling back to previously compromised passwords."
+    },
+    {
+      "id": "REQ-04",
+      "category": "Lockout Protection",
+      "title": "Failed Login Attempt Lockout",
+      "required_value": "Lock account after <= 5 failed attempts",
+      "max_failed_attempts": 5,
+      "severity": "HIGH",
+      "rationale": "Mitigates online credential-stuffing and interactive password guessing."
+    },
+    {
+      "id": "REQ-05",
+      "category": "Password Lifecycle",
+      "title": "Maximum Password Age / Expiration Policy",
+      "required_value": "Defined expiration policy (<= 365 days or risk-based breach check)",
+      "max_age_days": 365,
+      "severity": "LOW",
+      "rationale": "Ensures periodic credential rotation or explicit risk-based expiration governance."
+    },
+    {
+      "id": "REQ-06",
+      "category": "Central Governance",
+      "title": "Domain / MDM Password Policy Management",
+      "required_value": "Managed via Active Directory or MDM profile",
+      "severity": "MEDIUM",
+      "rationale": "Centralized enforcement ensures uniform compliance across all endpoints."
+    },
+    {
+      "id": "REQ-07",
+      "category": "Session Security",
+      "title": "Automatic Login Disabled",
+      "required_value": "Disabled (autoLoginUser unset)",
+      "severity": "HIGH",
+      "rationale": "Prevents unauthorized physical access upon device reboot."
+    },
+    {
+      "id": "REQ-08",
+      "category": "Account Hygiene",
+      "title": "Guest Account Disabled",
+      "required_value": "Disabled (GuestEnabled = 0)",
+      "severity": "MEDIUM",
+      "rationale": "Eliminates unauthenticated local guest sessions."
+    },
+    {
+      "id": "REQ-09",
+      "category": "Session Security",
+      "title": "Screen Lock Timeout",
+      "required_value": "<= 300 seconds (5 minutes)",
+      "max_screen_lock_seconds": 300,
+      "severity": "MEDIUM",
+      "rationale": "Limits exposure window when a workstation is left unattended."
+    },
+    {
+      "id": "REQ-10",
+      "category": "Cryptography",
+      "title": "Password Hashing Algorithm",
+      "required_value": "PBKDF2-HMAC-SHA512 / Salted ShadowHash",
+      "severity": "HIGH",
+      "rationale": "Slow salted key derivation resists offline cracking."
+    },
+    {
+      "id": "REQ-11",
+      "category": "Data Protection",
+      "title": "Full Disk Encryption (FileVault)",
+      "required_value": "Enabled (FileVault On)",
+      "severity": "HIGH",
+      "rationale": "Protects local credential databases and user data at rest."
+    },
+    {
+      "id": "REQ-12",
+      "category": "PAM Enforcement",
+      "title": "Directory-Backed PAM Authentication",
+      "required_value": "pam_opendirectory.so enforced on passwd, sudo, authorization",
+      "severity": "MEDIUM",
+      "rationale": "Ensures CLI tools and privilege escalation honor system password policies."
+    }
+  ]
+}
